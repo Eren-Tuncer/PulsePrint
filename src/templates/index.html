@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECG Classification & Authentication System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+    font-family: 'Montserrat', sans-serif;
+    background: #000;
+    color: #fff;
+    min-height: 100vh;
+    padding: 20px;
+}
+.container {
+    background: transparent;
+    box-shadow: none;
+}
+.header {
+    background: transparent;
+    color: white;
+}
+.upload-section,
+.setting-group,
+.result-card,
+.auth-section {
+    background: #111;
+    color: #fff;
+    border: 1px solid #333;
+}
+.upload-section:hover,
+.upload-section.dragover {
+    background: #1a1a1a;
+    border-color: #e50914;
+}
+.upload-btn {
+    background: #e50914;
+    color: #fff;
+}
+.upload-btn:hover {
+    background: #ff1f1f;
+    box-shadow: 0 0 10px #e50914;
+}
+.analyze-btn {
+    background: #e50914;
+    color: #fff;
+}
+.analyze-btn:hover:not(:disabled) {
+    background: #ff1f1f;
+    box-shadow: 0 0 10px #e50914;
+}
+.result-card.authentic {
+    border-left-color: #e50914;
+    background: #112;
+}
+.result-card.fake {
+    border-left-color: #dc3545;
+    background: #211;
+}
+.result-title,
+.result-value {
+    color: white;
+}
+.confidence-bar {
+    background: #333;
+}
+.file-item {
+    background: #111;
+    color: #fff;
+    border: 1px solid #333;
+}
+.remove-btn {
+    background: #dc3545;
+}
+.error {
+    background: #330000;
+    color: #ff4d4d;
+    border: 1px solid #ff4d4d;
+}
+.dat-notice {
+    background: #333;
+    color: #ffc107;
+    border-color: #555;
+}
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #e50914 0%, #b20710 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #e50914;
+            background: #f0f2ff;
+        }
+
+        .upload-section.dragover {
+            border-color: #e50914;
+            background: #e3f2fd;
+            transform: scale(1.02);
+        }
+
+        .upload-area {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: #e50914;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #e50914, #b20710);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .settings-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .setting-group {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .setting-group input, .setting-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .setting-group input:focus, .setting-group select:focus {
+            outline: none;
+            border-color: #e50914;
+        }
+
+        .analyze-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #e50914, #b20710);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .analyze-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .analyze-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            display: none;
+        }
+
+        .results-section.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #e50914;
+        }
+
+        .result-card.authentic {
+            border-left-color: #e50914;
+            background: #f8fff9;
+        }
+
+        .result-card.fake {
+            border-left-color: #dc3545;
+            background: #fff8f8;
+        }
+
+        .result-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .result-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .result-value.authentic {
+            color: #e50914;
+        }
+
+        .result-value.fake {
+            color: #dc3545;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 10px;
+            background: #dee2e6;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.8s ease;
+        }
+
+        .confidence-fill.authentic {
+            background: linear-gradient(90deg, #e50914, #b20710);
+        }
+
+        .confidence-fill.fake {
+            background: linear-gradient(90deg, #dc3545, #fd7e14);
+        }
+
+        .auth-section {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #e8f5e8;
+            border-radius: 10px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .auth-section.show {
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #e50914;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .file-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-list {
+            margin-top: 10px;
+        }
+
+        .file-item {
+            background: white;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-item .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .dat-notice {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #ffeaa7;
+            display: none;
+        }
+
+        .dat-notice.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .settings-section {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1> ECG Analysis System</h1>
+            <p>Advanced ECG Classification and Biometric Authentication</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Upload Section -->
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-area">
+                    <div class="upload-icon">📄</div>
+                    <h3>Upload ECG File(s)</h3>
+                    <p>Drag and drop your ECG file(s) here or click to browse</p>
+                    <p style="font-size: 0.9rem; color: #6c757d; margin-top: 10px;">
+                        For .dat files, please upload both .dat and .hea files together
+                    </p>
+                    <input type="file" id="ecgFile" class="file-input" accept=".txt,.dat,.asc,.csv,.hea" multiple>
+                    <button class="upload-btn" onclick="document.getElementById('ecgFile').click()">
+                        Choose File(s)
+                    </button>
+                </div>
+
+                <div class="dat-notice" id="datNotice">
+                    <strong>📋 Notice:</strong> You've selected a .dat file. Please also select the corresponding .hea file for proper processing.
+                </div>
+
+                <div class="file-info" id="fileInfo">
+                    <strong>Selected Files:</strong>
+                    <div class="file-list" id="fileList"></div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="settings-section">
+                <div class="setting-group">
+                    <label for="sampleRate">Sample Rate (Hz)</label>
+                    <select id="sampleRate">
+                        <option value="250">250 Hz</option>
+                        <option value="360" selected>360 Hz</option>
+                        <option value="500">500 Hz</option>
+                        <option value="1000">1000 Hz</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    <input type="number" id="customRate" placeholder="Enter custom rate" style="display:none; margin-top:10px;">
+                </div>
+
+                <div class="setting-group">
+                    <label for="threshold">Authentication Threshold</label>
+                    <input type="number" id="threshold" value="100" step="10" min="0" placeholder="100">
+                    <small style="color: #6c757d; font-size: 0.9rem;">Lower values = stricter authentication</small>
+                </div>
+            </div>
+
+            <!-- Analyze Button -->
+            <button class="analyze-btn" id="analyzeBtn" disabled onclick="analyzeECG()">
+                🔬 Analyze ECG Signal
+            </button>
+
+            <!-- Loading Section -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <h3>Analyzing ECG Signal...</h3>
+                <p>This may take a few moments</p>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="results">
+                <!-- Classification Results -->
+                <div class="result-card" id="classificationCard">
+                    <div class="result-title">Classification Result</div>
+                    <div class="result-value" id="classificationValue">Analyzing...</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidenceFill" style="width: 0%"></div>
+                    </div>
+                    <div>Confidence: <span id="confidenceValue">0%</span></div>
+                </div>
+
+                <!-- Authentication Results -->
+                <div class="auth-section" id="authSection">
+                    <div class="result-title">🔐 Authentication Result</div>
+                    <div id="authResult">
+                        <p><strong>Status:</strong> <span id="authStatus">-</span></p>
+                        <p><strong>Claimed ID:</strong> <span id="claimedId">-</span></p>
+                        <p><strong>Distance:</strong> <span id="authDistance">-</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Section -->
+            <div id="errorDiv" class="error" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFiles = [];
+
+        // File input handling
+        document.getElementById('ecgFile').addEventListener('change', function(e) {
+            handleFileSelection(Array.from(e.target.files));
+        });
+
+        // Sample rate handling
+        document.getElementById('sampleRate').addEventListener('change', function(e) {
+            const customRateInput = document.getElementById('customRate');
+            if (e.target.value === 'custom') {
+                customRateInput.style.display = 'block';
+                customRateInput.required = true;
+            } else {
+                customRateInput.style.display = 'none';
+                customRateInput.required = false;
+            }
+        });
+
+        // Drag and drop functionality
+        const uploadSection = document.getElementById('uploadSection');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadSection.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadSection.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadSection.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            uploadSection.classList.add('dragover');
+        }
+
+        function unhighlight() {
+            uploadSection.classList.remove('dragover');
+        }
+
+        uploadSection.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = Array.from(dt.files);
+            handleFileSelection(files);
+        }
+
+        function handleFileSelection(files) {
+            if (files && files.length > 0) {
+                selectedFiles = files;
+                updateFileDisplay();
+                validateFiles();
+                hideError();
+            }
+        }
+
+        function updateFileDisplay() {
+            const fileList = document.getElementById('fileList');
+            const fileInfo = document.getElementById('fileInfo');
+
+            fileList.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>${file.name} (${formatFileSize(file.size)})</span>
+                    <button class="remove-btn" onclick="removeFile(${index})">Remove</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+
+            fileInfo.classList.add('show');
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            if (selectedFiles.length === 0) {
+                document.getElementById('fileInfo').classList.remove('show');
+                document.getElementById('analyzeBtn').disabled = true;
+                document.getElementById('datNotice').classList.remove('show');
+            } else {
+                updateFileDisplay();
+                validateFiles();
+            }
+        }
+
+        function validateFiles() {
+            const datNotice = document.getElementById('datNotice');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+
+            // Check if we have any .dat files
+            const datFiles = selectedFiles.filter(f => f.name.toLowerCase().endsWith('.dat'));
+            const heaFiles = selectedFiles.filter(f => f.name.toLowerCase().endsWith('.hea'));
+
+            if (datFiles.length > 0) {
+                datNotice.classList.add('show');
+
+                // For .dat files, we need corresponding .hea files
+                if (datFiles.length === 1 && heaFiles.length === 1) {
+                    // Check if they have the same base name
+                    const datBaseName = datFiles[0].name.replace(/\.[^/.]+$/, "");
+                    const heaBaseName = heaFiles[0].name.replace(/\.[^/.]+$/, "");
+
+                    if (datBaseName === heaBaseName) {
+                        analyzeBtn.disabled = false;
+                        hideError();
+                    } else {
+                        analyzeBtn.disabled = true;
+                        showError('The .dat and .hea files must have the same base name.');
+                    }
+                } else if (datFiles.length > 1) {
+                    analyzeBtn.disabled = true;
+                    showError('Please upload only one pair of .dat and .hea files at a time.');
+                } else {
+                    analyzeBtn.disabled = true;
+                    showError('Please upload both .dat and .hea files for WFDB format files.');
+                }
+            } else {
+                datNotice.classList.remove('show');
+                // For non-.dat files, allow single file
+                if (selectedFiles.length === 1) {
+                    analyzeBtn.disabled = false;
+                } else if (selectedFiles.length > 1) {
+                    analyzeBtn.disabled = true;
+                    showError('Please upload only one file for non-WFDB formats.');
+                } else {
+                    analyzeBtn.disabled = true;
+                }
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function analyzeECG() {
+            if (selectedFiles.length === 0) {
+                showError('Please select ECG file(s) first.');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            hideError();
+
+            // Prepare form data
+            const formData = new FormData();
+
+            // Check if we have .dat/.hea files
+            const datFiles = selectedFiles.filter(f => f.name.toLowerCase().endsWith('.dat'));
+            const heaFiles = selectedFiles.filter(f => f.name.toLowerCase().endsWith('.hea'));
+
+            if (datFiles.length > 0 && heaFiles.length > 0) {
+                // Upload .dat and .hea files
+                formData.append('ecg_file', datFiles[0]);
+                formData.append('hea_file', heaFiles[0]);
+            } else {
+                // Upload single file
+                formData.append('ecg_file', selectedFiles[0]);
+            }
+
+            // Get sample rate
+            const sampleRateSelect = document.getElementById('sampleRate');
+            let sampleRate = sampleRateSelect.value;
+            if (sampleRate === 'custom') {
+                sampleRate = document.getElementById('customRate').value;
+                if (!sampleRate) {
+                    showError('Please enter a custom sample rate.');
+                    document.getElementById('loading').classList.remove('show');
+                    return;
+                }
+            }
+            formData.append('sample_rate', sampleRate);
+
+            // Get server URL - fixed to localhost
+            const serverUrl = 'http://localhost:5000';
+
+            try {
+                const response = await fetch(`${serverUrl}/api/predict_and_auth`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Server error occurred');
+                }
+
+                displayResults(data);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`Analysis failed: ${error.message}`);
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+            }
+        }
+
+        function displayResults(data) {
+            const resultsSection = document.getElementById('results');
+            const classificationCard = document.getElementById('classificationCard');
+            const classificationValue = document.getElementById('classificationValue');
+            const confidenceFill = document.getElementById('confidenceFill');
+            const confidenceValue = document.getElementById('confidenceValue');
+            const authSection = document.getElementById('authSection');
+
+            // Display classification results
+            const isReal = data.classification === 1;
+            classificationValue.textContent = isReal ? '✅ Authentic ECG' : '❌ Fake ECG';
+            classificationValue.className = `result-value ${isReal ? 'authentic' : 'fake'}`;
+
+            classificationCard.className = `result-card ${isReal ? 'authentic' : 'fake'}`;
+
+            const confidencePercent = Math.round(data.confidence * 100);
+            confidenceFill.style.width = `${confidencePercent}%`;
+            confidenceFill.className = `confidence-fill ${isReal ? 'authentic' : 'fake'}`;
+            confidenceValue.textContent = `${confidencePercent}%`;
+
+            // Display authentication results if available
+            if (data.hasOwnProperty('authenticated')) {
+                authSection.classList.add('show');
+                document.getElementById('authStatus').textContent = data.authenticated ? '✅ Authenticated' : '❌ Not Authenticated';
+                document.getElementById('claimedId').textContent = data.claimed_id || 'Unknown';
+                document.getElementById('authDistance').textContent = data.distance ? data.distance.toFixed(2) : 'N/A';
+            } else {
+                authSection.classList.remove('show');
+            }
+
+            // Show error if present
+            if (data.error) {
+                showError(`Warning: ${data.error}`);
+            }
+
+            resultsSection.classList.add('show');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorDiv');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorDiv').style.display = 'none';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('ECG Analysis GUI loaded successfully');
+        });
+    </script>
+</body>
+</html>
